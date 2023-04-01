@@ -12,7 +12,7 @@ public struct CameraView<Content: View>: UIViewControllerRepresentable {
     /// - Parameters:
     ///   - image: Binding object that will receive the new image when available
     ///   - swiftUIView: SwiftUI View that will represent the camera button
-    init(image: Binding<UIImage?>, swiftUIView: @escaping () -> Content) {
+    public init(image: Binding<UIImage?>, swiftUIView: @escaping () -> Content) {
         _image = image
         self.swiftUIView = UIHostingController(rootView: swiftUIView())
     }
