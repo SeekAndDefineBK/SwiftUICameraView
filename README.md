@@ -11,6 +11,7 @@ SwiftUI wrapper for the UIKit Camera View.
     - [NSCameraUsageDescription - Apple Documentation](https://developer.apple.com/documentation/bundleresources/information_property_list/nscamerausagedescription)
 
 # Usage Example
+```
 @State private var selectedImage: UIImage?
 
 var body: some View {
@@ -18,3 +19,4 @@ var body: some View {
         Label("Text Here", systemImage: "camera")
     }
 }
+```
