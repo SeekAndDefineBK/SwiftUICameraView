@@ -1,88 +1,65 @@
+//
+//  CameraView.swift
+//
+//
+//  Created by Brett Koster on 4/1/23.
+//
+
 import SwiftUI
-import PhotosUI
-import UIKit
 
-@available(iOS 16.0, *)
-public struct CameraView<Content: View>: UIViewControllerRepresentable {
-    //MARK: ViewController properties
+public struct CameraView<Content: View>: View {
+    // The captured image, this cannot be private due to being shared with ImagePickerDelegate
     @Binding var image: UIImage?
-    let swiftUIView: UIHostingController<Content>
     
-    /// Use this initializer when you have a SwiftUI view to trigger the camera
+    // We'll store the ImagePickerDelegate instance in this property to ensure that it's not deallocated prematurely
+    @State private var imagePickerDelegate: ImagePickerDelegate<Content>?
+    
+    // The SwiftUI view passed in to display as the button label
+    var label: () -> Content
+    
+    /// Default initializer that requires a bound UIImage? object and a SwiftUI view for the button label
     /// - Parameters:
-    ///   - image: Binding object that will receive the new image when available
-    ///   - swiftUIView: SwiftUI View that will represent the camera button
-    public init(image: Binding<UIImage?>, swiftUIView: @escaping () -> Content) {
+    ///   - image: Binding<UIImage?>
+    ///   - label: SwiftUI view that will serve as the button label
+    public init(image: Binding<UIImage?>, label: @escaping () -> Content) {
         _image = image
-        self.swiftUIView = UIHostingController(rootView: swiftUIView())
+        self.label = label
     }
     
-    public func makeUIViewController(context: Context) -> UIViewController {
-        return CameraViewController(
-            image: $image,
-            swiftUIView: swiftUIView
-        )
+    public var body: some View {
+        Button {
+            capturePhoto()
+        } label: {
+            label()
+        }
     }
-    
-    public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        //Unused at this point, but required for protocol conformance
-    }
-}
 
-@available(iOS 16.0, *)
-class CameraViewController<Content: View>: UIViewController, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-    
-    @Binding var image: UIImage?
-    var hostingController: UIHostingController<Content>
-    
-    init(image: Binding<UIImage?>, swiftUIView: UIHostingController<Content>) {
-        _image = image
-        hostingController = swiftUIView
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("SwiftUICameraView failed to load, NSCoder: \(coder)")
-    }
-    
-    override func viewDidLoad() {
+    public func capturePhoto() {
+        // Create an instance of UIImagePickerController
+        let imagePicker = UIImagePickerController()
         
-        super.viewDidLoad()
+        // Create an instance of ImagePickerDelegate and store it in the imagePickerDelegate property
+        imagePickerDelegate = ImagePickerDelegate<Content>(parent: self)
         
-        let child: UIView = hostingController.view
-        child.translatesAutoresizingMaskIntoConstraints = false
-        child.frame = CGRect(x: 0, y: 0, width: 150, height: 50)
+        // Set the delegate of the UIImagePickerController to the ImagePickerDelegate instance
+        imagePicker.delegate = imagePickerDelegate
+        
+        // Set the source type of the UIImagePickerController to the camera
+        imagePicker.sourceType = .camera
+    
+        // Verify UIWindowScene exists
+        guard let firstScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return
+        }
 
-        NSLayoutConstraint.activate( [
-            child.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            child.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-        
-        let button = UIButton(type: .system)
-        button.addSubview(child)
-        button.addTarget(self, action: #selector(buttonAction(_:)), for: .touchUpInside)
-        
-        view.addSubview(button)
-        
-        hostingController.didMove(toParent: self)
-    }
-    
-    @objc func buttonAction(_ sender: UIButton!) {
-        let vc = UIImagePickerController()
-        vc.sourceType = .camera
-        vc.allowsEditing = true
-        vc.delegate = self
-        present(vc, animated: true)
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        picker.dismiss(animated: true)
-        
-        guard let image = info[.editedImage] as? UIImage else {
-            print("No image found")
+        // Verify Window in UIWindowScene exists
+        guard let firstWindow = firstScene.windows.first else {
             return
         }
         
-        self.image = image
+        // Present the UIImagePickerController
+        if let viewController = firstWindow.rootViewController {
+            viewController.present(imagePicker, animated: true, completion: nil)
+        }
     }
 }
