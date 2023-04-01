@@ -8,7 +8,7 @@
 import SwiftUI
 import UIKit
 
-// This is a custom delegate class for the UIImagePickerController
+// This is a custom delegate class which contains a reference to the CameraView parent view
 public class ImagePickerDelegate<Content: View>: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     public let parent: CameraView<Content>
     
@@ -17,8 +17,9 @@ public class ImagePickerDelegate<Content: View>: NSObject, UIImagePickerControll
         self.parent = parent
     }
 
-    // This method is called when the user selects an image in the UIImagePickerController
+    // This method is called when the user captures an image in the UIImagePickerController
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
         // Get the captured image
         if let image = info[.originalImage] as? UIImage {
             // Set the image state variable to the captured image
