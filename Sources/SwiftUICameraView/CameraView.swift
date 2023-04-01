@@ -3,7 +3,7 @@ import PhotosUI
 import UIKit
 
 @available(iOS 16.0, *)
-struct CameraView<Content: View>: UIViewControllerRepresentable {
+public struct CameraView<Content: View>: UIViewControllerRepresentable {
     //MARK: ViewController properties
     @Binding var image: UIImage?
     let swiftUIView: UIHostingController<Content>
@@ -17,14 +17,14 @@ struct CameraView<Content: View>: UIViewControllerRepresentable {
         self.swiftUIView = UIHostingController(rootView: swiftUIView())
     }
     
-    func makeUIViewController(context: Context) -> UIViewController {
+    public func makeUIViewController(context: Context) -> UIViewController {
         return CameraViewController(
             image: $image,
             swiftUIView: swiftUIView
         )
     }
     
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         //Unused at this point, but required for protocol conformance
     }
 }
